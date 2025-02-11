@@ -19,6 +19,8 @@ terraform {
 provider "azurerm" {
   # Leave the features block empty to accept all defaults
   features {}
+
+
 }
 
 provider "cloudinit" {
@@ -89,10 +91,11 @@ resource "azurerm_network_interface" "nic" {
     public_ip_address_id         = azurerm_public_ip.ip.id
   }
 }
-
 data "cloudinit_config" "init" {
-  content = file("init.sh")  
-}
+  part {
+  content = file("init.sh")
+  }
+  }
 
 resource "azurerm_linux_virtual_machine" "vm" {
  name                = "${var.labelPrefix}-A05-VM"
@@ -105,10 +108,16 @@ resource "azurerm_linux_virtual_machine" "vm" {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file("~/.ssh/id_rsa.pub")
+    public_key = file("/mnt/c/Users/X/.ssh/id_rsa.pub")
   }
 
   custom_data = data.cloudinit_config.init.rendered
